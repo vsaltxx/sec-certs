@@ -7,7 +7,7 @@ jobs:
   pypi_release:
     name: Release on PyPi
     runs-on: ubuntu-22.04
-    #if: github.repository == 'crocs-muni/sec-certs'
+    if: false
     environment:
       name: pypi
       url: https://pypi.org/project/sec-certs/
@@ -29,14 +29,14 @@ jobs:
 
   docker_release_build:
     name: Docker Build ${{ matrix.target }} (${{ matrix.arch }})
-    if: github.repository == 'crocs-muni/sec-certs'
+    if: github.repository == 'vsaltxx/sec-certs'
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 120
     environment:
       name: dockerhub
-      url: https://hub.docker.com/r/seccerts/sec-certs/
+      url: https://hub.docker.com/r/saltanava/sec-certs/
     env:
-      IMAGE: seccerts/sec-certs
+      IMAGE: saltanava/sec-certs
     strategy:
       fail-fast: false
       matrix:
@@ -59,6 +59,9 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      - name: TEMP force failure of docling arm64
+        if: matrix.target == 'docling' && matrix.arch == 'arm64'
+        run: exit 1
       - name: Disk usage before build
         run: df -h /
       - name: Build and push by digest
@@ -92,11 +95,11 @@ jobs:
   docker_release_publish:
     name: Docker Publish ${{ matrix.target }}
     needs: docker_release_build
-    if: ${{ !cancelled() && github.repository == 'crocs-muni/sec-certs' }}
+    if: ${{ !cancelled() && github.repository == 'vsaltxx/sec-certs' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      IMAGE: seccerts/sec-certs
+      IMAGE: saltanava/sec-certs
     strategy:
       fail-fast: false
       matrix:
@@ -161,4 +164,4 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
-          repository: seccerts/sec-certs
+          repository: saltanava/sec-certs
